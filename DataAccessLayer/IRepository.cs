@@ -4,40 +4,40 @@ using Models;
 namespace DataAccessLayer
 {
     /// <summary>
-    /// Интерфейс репозитория для выполнения CRUD-операций над доменными объектами.
+    /// Абстракция репозитория с базовыми CRUD-операциями для доменных объектов.
     /// </summary>
-    /// <typeparam name="T">Тип доменного объекта, реализующего IDomainObject.</typeparam>
+    /// <typeparam name="T">Тип доменной сущности.</typeparam>
     public interface IRepository<T> where T : IDomainObject
     {
         /// <summary>
-        /// Добавляет новый объект в хранилище.
+        /// Добавляет новую сущность в хранилище.
         /// </summary>
-        /// <param name="entity">Объект для добавления.</param>
+        /// <param name="entity">Сущность для добавления.</param>
         void Add(T entity);
 
         /// <summary>
-        /// Удаляет объект из хранилища по идентификатору.
+        /// Удаляет сущность по идентификатору.
         /// </summary>
-        /// <param name="id">Идентификатор объекта для удаления.</param>
+        /// <param name="id">Идентификатор сущности.</param>
         void Delete(int id);
 
         /// <summary>
-        /// Возвращает все объекты из хранилища.
+        /// Возвращает все сущности.
         /// </summary>
-        /// <returns>Список всех объектов.</returns>
+        /// <returns>Список сущностей.</returns>
         List<T> ReadAll();
 
         /// <summary>
-        /// Возвращает объект по идентификатору.
+        /// Возвращает сущность по идентификатору.
         /// </summary>
-        /// <param name="id">Идентификатор искомого объекта.</param>
-        /// <returns>Объект с указанным идентификатором или null.</returns>
-        T ReadById(int id);
+        /// <param name="id">Идентификатор для поиска.</param>
+        /// <returns>Сущность или null.</returns>
+        T? ReadById(int id);
 
         /// <summary>
-        /// Обновляет существующий объект в хранилище.
+        /// Обновляет сущность в хранилище.
         /// </summary>
-        /// <param name="entity">Объект с обновленными данными.</param>
+        /// <param name="entity">Сущность с обновлёнными полями.</param>
         void Update(T entity);
     }
 }

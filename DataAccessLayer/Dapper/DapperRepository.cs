@@ -8,36 +8,35 @@ using Models;
 namespace DataAccessLayer.Dapper
 {
     /// <summary>
-    /// Реализация репозитория с использованием Dapper.
+    /// Реализация <see cref="IRepository{T}"/> на Dapper.
     /// </summary>
-    /// <typeparam name="T">Тип доменного объекта.</typeparam>
+    /// <typeparam name="T">Тип доменной сущности.</typeparam>
     public class DapperRepository<T> : IRepository<T> where T : class, IDomainObject
     {
         private readonly IDbConnection _connection;
         private readonly string _tableName;
 
         /// <summary>
-        /// Конструктор репозитория.
+        /// Создаёт репозиторий, использующий ADO.NET соединение.
         /// </summary>
-        /// <param name="connection">Соединение с базой данных.</param>
-        /// <param name="tableName">Название таблицы в базе данных.</param>
+        /// <param name="connection">Открытое соединение с БД.</param>
+        /// <param name="tableName">Имя таблицы.</param>
         public DapperRepository(IDbConnection connection, string tableName)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
         }
 
-        /// <summary>
-        /// Добавляет новый объект в базу данных.
-        /// </summary>
-        /// <param name="entity">Объект для добавления.</param>
+        /// <inheritdoc/>
         public void Add(T entity)
         {
             if (entity == null)
+            {
                 throw new ArgumentNullException(nameof(entity));
+            }
 
             var properties = typeof(T).GetProperties()
-                .Where(p => p.Name != "Id")
+                .Where(p => p.Name != nameof(IDomainObject.Id))
                 .Select(p => p.Name);
 
             var columns = string.Join(", ", properties);
@@ -48,48 +47,37 @@ namespace DataAccessLayer.Dapper
             entity.Id = _connection.ExecuteScalar<int>(sql, entity);
         }
 
-        /// <summary>
-        /// Удаляет объект из базы данных по идентификатору.
-        /// </summary>
-        /// <param name="id">Идентификатор объекта.</param>
+        /// <inheritdoc/>
         public void Delete(int id)
         {
             var sql = $"DELETE FROM {_tableName} WHERE Id = @Id";
             _connection.Execute(sql, new { Id = id });
         }
 
-        /// <summary>
-        /// Возвращает все объекты из базы данных.
-        /// </summary>
-        /// <returns>Список всех объектов.</returns>
+        /// <inheritdoc/>
         public List<T> ReadAll()
         {
             var sql = $"SELECT * FROM {_tableName}";
             return _connection.Query<T>(sql).ToList();
         }
 
-        /// <summary>
-        /// Возвращает объект по идентификатору.
-        /// </summary>
-        /// <param name="id">Идентификатор объекта.</param>
-        /// <returns>Объект или null.</returns>
-        public T ReadById(int id)
+        /// <inheritdoc/>
+        public T? ReadById(int id)
         {
             var sql = $"SELECT * FROM {_tableName} WHERE Id = @Id";
             return _connection.QueryFirstOrDefault<T>(sql, new { Id = id });
         }
 
-        /// <summary>
-        /// Обновляет существующий объект в базе данных.
-        /// </summary>
-        /// <param name="entity">Объект с обновленными данными.</param>
+        /// <inheritdoc/>
         public void Update(T entity)
         {
             if (entity == null)
+            {
                 throw new ArgumentNullException(nameof(entity));
+            }
 
             var properties = typeof(T).GetProperties()
-                .Where(p => p.Name != "Id")
+                .Where(p => p.Name != nameof(IDomainObject.Id))
                 .Select(p => $"{p.Name} = @{p.Name}");
 
             var setClause = string.Join(", ", properties);

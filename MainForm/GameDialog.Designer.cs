@@ -7,133 +7,141 @@ namespace GameApp.UI
     partial class GameDialog
     {
         private System.ComponentModel.IContainer components = null;
+        private Label lblName;
+        private Label lblGenre;
+        private Label lblRating;
         private TextBox txtName;
         private TextBox txtGenre;
         private NumericUpDown nudRating;
         private Button btnOK;
         private Button btnCancel;
-        private Label lblName;
-        private Label lblGenre;
-        private Label lblRating;
 
         /// <summary>
         /// Освобождает ресурсы диалога.
         /// </summary>
-        /// <param name="disposing">True если управляемые ресурсы должны быть освобождены.</param>
+        /// <param name="disposing">True для освобождения управляемых ресурсов.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
+            {
                 components.Dispose();
+            }
+
             base.Dispose(disposing);
         }
 
         #region Windows Form Designer generated code
 
         /// <summary>
-        /// Инициализация компонентов диалога.
+        /// Метод для инициализации интерфейса.
         /// </summary>
         private void InitializeComponent()
         {
+            lblName = new Label();
+            lblGenre = new Label();
+            lblRating = new Label();
             txtName = new TextBox();
             txtGenre = new TextBox();
             nudRating = new NumericUpDown();
             btnOK = new Button();
             btnCancel = new Button();
-            lblName = new Label();
-            lblGenre = new Label();
-            lblRating = new Label();
             ((System.ComponentModel.ISupportInitialize)nudRating).BeginInit();
             SuspendLayout();
-            // 
-            // txtName
-            // 
-            txtName.Location = new Point(147, 20);
-            txtName.Name = "txtName";
-            txtName.Size = new Size(181, 39);
-            txtName.TabIndex = 1;
-            // 
-            // txtGenre
-            // 
-            txtGenre.Location = new Point(147, 60);
-            txtGenre.Name = "txtGenre";
-            txtGenre.Size = new Size(181, 39);
-            txtGenre.TabIndex = 3;
-            // 
-            // nudRating
-            // 
-            nudRating.DecimalPlaces = 1;
-            nudRating.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            nudRating.Location = new Point(132, 105);
-            nudRating.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
-            nudRating.Name = "nudRating";
-            nudRating.Size = new Size(74, 39);
-            nudRating.TabIndex = 5;
-            nudRating.ValueChanged += nudRating_ValueChanged;
-            // 
-            // btnOK
-            // 
-            btnOK.Location = new Point(20, 143);
-            btnOK.Name = "btnOK";
-            btnOK.Size = new Size(80, 48);
-            btnOK.TabIndex = 6;
-            btnOK.Text = "OK";
-            btnOK.Click += btnOK_Click;
-            // 
-            // btnCancel
-            // 
-            btnCancel.Location = new Point(220, 156);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(108, 35);
-            btnCancel.TabIndex = 7;
-            btnCancel.Text = "Отмена";
-            btnCancel.Click += btnCancel_Click;
             // 
             // lblName
             // 
             lblName.AutoSize = true;
             lblName.Location = new Point(20, 20);
             lblName.Name = "lblName";
-            lblName.Size = new Size(125, 32);
+            lblName.Size = new Size(98, 32);
             lblName.TabIndex = 0;
-            lblName.Text = "Название:";
+            lblName.Text = "Название";
             // 
             // lblGenre
             // 
             lblGenre.AutoSize = true;
-            lblGenre.Location = new Point(20, 60);
+            lblGenre.Location = new Point(20, 76);
             lblGenre.Name = "lblGenre";
-            lblGenre.Size = new Size(80, 32);
+            lblGenre.Size = new Size(74, 32);
             lblGenre.TabIndex = 2;
-            lblGenre.Text = "Жанр:";
+            lblGenre.Text = "Жанр";
             // 
             // lblRating
             // 
             lblRating.AutoSize = true;
-            lblRating.Location = new Point(20, 100);
+            lblRating.Location = new Point(20, 132);
             lblRating.Name = "lblRating";
-            lblRating.Size = new Size(106, 32);
+            lblRating.Size = new Size(96, 32);
             lblRating.TabIndex = 4;
-            lblRating.Text = "Рейтинг:";
+            lblRating.Text = "Рейтинг";
+            // 
+            // txtName
+            // 
+            txtName.Location = new Point(140, 17);
+            txtName.Name = "txtName";
+            txtName.Size = new Size(320, 39);
+            txtName.TabIndex = 1;
+            // 
+            // txtGenre
+            // 
+            txtGenre.Location = new Point(140, 73);
+            txtGenre.Name = "txtGenre";
+            txtGenre.Size = new Size(320, 39);
+            txtGenre.TabIndex = 3;
+            // 
+            // nudRating
+            // 
+            nudRating.DecimalPlaces = 1;
+            nudRating.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+            nudRating.Location = new Point(140, 130);
+            nudRating.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
+            nudRating.Name = "nudRating";
+            nudRating.Size = new Size(150, 39);
+            nudRating.TabIndex = 5;
+            nudRating.Value = new decimal(new int[] { 5, 0, 0, 0 });
+            // 
+            // btnOK
+            // 
+            btnOK.Location = new Point(140, 190);
+            btnOK.Name = "btnOK";
+            btnOK.Size = new Size(150, 45);
+            btnOK.TabIndex = 6;
+            btnOK.Text = "Сохранить";
+            btnOK.UseVisualStyleBackColor = true;
+            btnOK.Click += btnOK_Click;
+            // 
+            // btnCancel
+            // 
+            btnCancel.Location = new Point(310, 190);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(150, 45);
+            btnCancel.TabIndex = 7;
+            btnCancel.Text = "Отмена";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += btnCancel_Click;
             // 
             // GameDialog
             // 
+            AutoScaleDimensions = new SizeF(13F, 32F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(482, 255);
+            Controls.Add(btnCancel);
+            Controls.Add(btnOK);
+            Controls.Add(nudRating);
+            Controls.Add(txtGenre);
+            Controls.Add(txtName);
+            Controls.Add(lblRating);
+            Controls.Add(lblGenre);
+            Controls.Add(lblName);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
             AcceptButton = btnOK;
             CancelButton = btnCancel;
-            ClientSize = new Size(340, 200);
-            Controls.Add(lblName);
-            Controls.Add(txtName);
-            Controls.Add(lblGenre);
-            Controls.Add(txtGenre);
-            Controls.Add(lblRating);
-            Controls.Add(nudRating);
-            Controls.Add(btnOK);
-            Controls.Add(btnCancel);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "GameDialog";
+            ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
-            Text = "Добавить/Редактировать игру";
+            Text = "Игра";
             ((System.ComponentModel.ISupportInitialize)nudRating).EndInit();
             ResumeLayout(false);
             PerformLayout();

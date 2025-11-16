@@ -7,16 +7,16 @@ using Models;
 namespace DataAccessLayer.EF
 {
     /// <summary>
-    /// Реализация репозитория с использованием Entity Framework.
+    /// Реализация <see cref="IRepository{T}"/> на Entity Framework Core.
     /// </summary>
-    /// <typeparam name="T">Тип доменного объекта.</typeparam>
+    /// <typeparam name="T">Тип доменной сущности.</typeparam>
     public class EntityRepository<T> : IRepository<T> where T : class, IDomainObject
     {
         private readonly GameDbContext _context;
         private readonly DbSet<T> _dbSet;
 
         /// <summary>
-        /// Конструктор репозитория.
+        /// Создаёт репозиторий на основе переданного контекста.
         /// </summary>
         /// <param name="context">Контекст базы данных.</param>
         public EntityRepository(GameDbContext context)
@@ -25,23 +25,19 @@ namespace DataAccessLayer.EF
             _dbSet = _context.Set<T>();
         }
 
-        /// <summary>
-        /// Добавляет новый объект в базу данных.
-        /// </summary>
-        /// <param name="entity">Объект для добавления.</param>
+        /// <inheritdoc/>
         public void Add(T entity)
         {
             if (entity == null)
+            {
                 throw new ArgumentNullException(nameof(entity));
+            }
 
             _dbSet.Add(entity);
             _context.SaveChanges();
         }
 
-        /// <summary>
-        /// Удаляет объект из базы данных по идентификатору.
-        /// </summary>
-        /// <param name="id">Идентификатор объекта.</param>
+        /// <inheritdoc/>
         public void Delete(int id)
         {
             var entity = _dbSet.Find(id);
@@ -52,42 +48,35 @@ namespace DataAccessLayer.EF
             }
         }
 
-        /// <summary>
-        /// Возвращает все объекты из базы данных.
-        /// </summary>
-        /// <returns>Список всех объектов.</returns>
+        /// <inheritdoc/>
         public List<T> ReadAll()
         {
             return _dbSet.ToList();
         }
 
-        /// <summary>
-        /// Возвращает объект по идентификатору.
-        /// </summary>
-        /// <param name="id">Идентификатор объекта.</param>
-        /// <returns>Объект или null.</returns>
-        public T ReadById(int id)
+        /// <inheritdoc/>
+        public T? ReadById(int id)
         {
             return _dbSet.Find(id);
         }
 
-        /// <summary>
-        /// Обновляет существующий объект в базе данных.
-        /// </summary>
-        /// <param name="entity">Объект с обновленными данными.</param>
+        /// <inheritdoc/>
         public void Update(T entity)
         {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
             var tracked = _dbSet.Local.FirstOrDefault(e => e.Id == entity.Id);
 
             if (tracked != null)
             {
-                // Отсоединяем старую сущность
                 _context.Entry(tracked).State = EntityState.Detached;
             }
 
             _context.Entry(entity).State = EntityState.Modified;
             _context.SaveChanges();
         }
-
     }
 }

@@ -4,12 +4,12 @@ using System.Windows.Forms;
 namespace GameApp.UI
 {
     /// <summary>
-    /// Диалоговое окно для добавления и редактирования игр.
+    /// Диалоговое окно для ввода и редактирования информации об игре.
     /// </summary>
     public partial class GameDialog : Form
     {
         /// <summary>
-        /// Конструктор диалогового окна.
+        /// Создаёт новый диалог.
         /// </summary>
         public GameDialog()
         {
@@ -17,7 +17,7 @@ namespace GameApp.UI
         }
 
         /// <summary>
-        /// Название игры, введённое пользователем.
+        /// Название игры.
         /// </summary>
         public string GameName
         {
@@ -26,7 +26,7 @@ namespace GameApp.UI
         }
 
         /// <summary>
-        /// Жанр игры, введённый пользователем.
+        /// Жанр игры.
         /// </summary>
         public string GameGenre
         {
@@ -35,7 +35,7 @@ namespace GameApp.UI
         }
 
         /// <summary>
-        /// Рейтинг игры (0-10), введённый пользователем.
+        /// Рейтинг от 0 до 10.
         /// </summary>
         public double GameRating
         {
@@ -43,25 +43,18 @@ namespace GameApp.UI
             set => nudRating.Value = (decimal)value;
         }
 
-        /// <summary>
-        /// Обработка нажатия кнопки "OK". Проверяет корректность введённых данных.
-        /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Аргументы события.</param>
         private void btnOK_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(GameName))
             {
-                MessageBox.Show("Название не может быть пустым.",
-                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Название игры обязательно.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtName.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(GameGenre))
             {
-                MessageBox.Show("Жанр не может быть пустым.",
-                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Укажите жанр игры.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtGenre.Focus();
                 return;
             }
@@ -70,20 +63,10 @@ namespace GameApp.UI
             Close();
         }
 
-        /// <summary>
-        /// Обработка нажатия кнопки "Отмена". Закрывает форму без сохранения.
-        /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Аргументы события.</param>
         private void btnCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
-        }
-
-        private void nudRating_ValueChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

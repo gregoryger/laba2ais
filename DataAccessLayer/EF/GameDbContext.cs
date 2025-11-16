@@ -4,27 +4,24 @@ using Models;
 namespace DataAccessLayer.EF
 {
     /// <summary>
-    /// Контекст базы данных для работы с Entity Framework.
+    /// DbContext Entity Framework Core для каталога игр.
     /// </summary>
     public class GameDbContext : DbContext
     {
         /// <summary>
-        /// Коллекция игр в базе данных.
+        /// Инициализирует контекст переданными опциями.
         /// </summary>
-        public DbSet<Game> Games { get; set; }
-
-        /// <summary>
-        /// Конструктор контекста базы данных.
-        /// </summary>
-        /// <param name="options">Параметры конфигурации контекста.</param>
+        /// <param name="options">Параметры EF Core.</param>
         public GameDbContext(DbContextOptions<GameDbContext> options) : base(options)
         {
         }
 
         /// <summary>
-        /// Конфигурация модели данных.
+        /// Набор игр.
         /// </summary>
-        /// <param name="modelBuilder">Построитель модели.</param>
+        public DbSet<Game> Games { get; set; } = null!;
+
+        /// <inheritdoc/>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

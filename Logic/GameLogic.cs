@@ -1,146 +1,161 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Models;
+using System.Text.Json;
 using DataAccessLayer;
+using Logic.Logging;
+using Models;
 
 namespace Logic
 {
     /// <summary>
-    /// Класс бизнес-логики для работы с сущностями Game (CRUD-операции и специальные функции).
+    /// Реализует сценарии работы с сущностью <see cref="Game"/>.
     /// </summary>
-    public class GameLogic
+    public class GameLogic : IGameLogic
     {
         private readonly IRepository<Game> _repository;
+        private readonly IGameLogger _logger;
 
         /// <summary>
-        /// Конструктор класса бизнес-логики.
+        /// Создаёт логику и подключает зависимости.
         /// </summary>
-        /// <param name="repository">Репозиторий для работы с играми.</param>
-        public GameLogic(IRepository<Game> repository)
+        /// <param name="repository">Абстракция репозитория.</param>
+        /// <param name="logger">Логгер для аудита.</param>
+        public GameLogic(IRepository<Game> repository, IGameLogger logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Добавляет новую игру в систему.
-        /// </summary>
-        /// <param name="game">Новая игра для добавления.</param>
-        /// <returns>Добавленная игра с присвоенным идентификатором.</returns>
+        /// <inheritdoc/>
         public Game AddGame(Game game)
         {
-            if (game == null)
-                throw new ArgumentNullException(nameof(game));
-
-            if (string.IsNullOrWhiteSpace(game.Name))
-                throw new ArgumentException("Название игры не может быть пустым.", nameof(game));
-
-            if (string.IsNullOrWhiteSpace(game.Genre))
-                throw new ArgumentException("Жанр игры не может быть пустым.", nameof(game));
-
-            if (game.Rating < 0 || game.Rating > 10)
-                throw new ArgumentException("Рейтинг должен быть в диапазоне от 0 до 10.", nameof(game));
+            ValidateGame(game);
 
             _repository.Add(game);
+            _logger.LogInfo($"Game added: {game.Name} ({game.Genre}) with rating {game.Rating}.");
+            _logger.LogGameSnapshot(game);
+
             return game;
         }
 
-        /// <summary>
-        /// Удаляет игру по её идентификатору.
-        /// </summary>
-        /// <param name="id">Идентификатор игры для удаления.</param>
-        /// <returns>True, если игра найдена и удалена, иначе False.</returns>
+        /// <inheritdoc/>
         public bool DeleteGame(int id)
         {
-            if (id <= 0)
-                throw new ArgumentException("ID должен быть положительным числом.", nameof(id));
+            ValidateId(id);
 
             var game = _repository.ReadById(id);
             if (game == null)
+            {
                 return false;
+            }
 
             _repository.Delete(id);
+            _logger.LogInfo($"Game deleted: {game.Name} (Id={id}).");
             return true;
         }
 
-        /// <summary>
-        /// Возвращает список всех игр.
-        /// </summary>
-        /// <returns>Список всех игр.</returns>
+        /// <inheritdoc/>
         public List<Game> GetAllGames()
         {
             return _repository.ReadAll();
         }
 
-        /// <summary>
-        /// Находит игру по её идентификатору.
-        /// </summary>
-        /// <param name="id">Идентификатор искомой игры.</param>
-        /// <returns>Игру с заданным Id, либо null, если не найдена.</returns>
-        public Game GetGameById(int id)
+        /// <inheritdoc/>
+        public Game? GetGameById(int id)
         {
-            if (id <= 0)
-                throw new ArgumentException("ID должен быть положительным числом.", nameof(id));
-
+            ValidateId(id);
             return _repository.ReadById(id);
         }
 
-        /// <summary>
-        /// Обновляет данные существующей игры.
-        /// </summary>
-        /// <param name="game">Обновлённая игра (должна иметь корректный Id).</param>
-        /// <returns>True, если игра найдена и обновлена, иначе False.</returns>
+        /// <inheritdoc/>
         public bool UpdateGame(Game game)
         {
-            if (game == null)
-                throw new ArgumentNullException(nameof(game));
-
-            if (string.IsNullOrWhiteSpace(game.Name))
-                throw new ArgumentException("Название игры не может быть пустым.", nameof(game));
-
-            if (string.IsNullOrWhiteSpace(game.Genre))
-                throw new ArgumentException("Жанр игры не может быть пустым.", nameof(game));
-
-            if (game.Rating < 0 || game.Rating > 10)
-                throw new ArgumentException("Рейтинг должен быть в диапазоне от 0 до 10.", nameof(game));
+            ValidateGame(game);
+            ValidateId(game.Id);
 
             var existingGame = _repository.ReadById(game.Id);
             if (existingGame == null)
+            {
                 return false;
+            }
 
             _repository.Update(game);
+            _logger.LogInfo($"Game updated: {game.Name} (Id={game.Id}).");
+            _logger.LogGameSnapshot(game);
             return true;
         }
 
-        /// <summary>
-        /// Фильтрует список игр по указанному жанру (без учёта регистра).
-        /// </summary>
-        /// <param name="genre">Жанр для фильтрации.</param>
-        /// <returns>Список игр указанного жанра.</returns>
+        /// <inheritdoc/>
         public List<Game> FilterByGenre(string genre)
         {
             if (string.IsNullOrWhiteSpace(genre))
-                throw new ArgumentException("Жанр не может быть пустым.", nameof(genre));
+            {
+                throw new ArgumentException("Genre is required.", nameof(genre));
+            }
 
             return _repository.ReadAll()
                 .Where(g => g.Genre.Equals(genre, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
 
-        /// <summary>
-        /// Возвращает топ N игр по убыванию рейтинга.
-        /// </summary>
-        /// <param name="count">Максимальное число игр в топе.</param>
-        /// <returns>Список игр с наивысшими рейтингами (не более count штук).</returns>
+        /// <inheritdoc/>
         public List<Game> GetTopRatedGames(int count)
         {
             if (count < 1)
-                throw new ArgumentOutOfRangeException(nameof(count), "Количество должно быть больше нуля.");
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), "Count must be at least 1.");
+            }
 
             return _repository.ReadAll()
                 .OrderByDescending(g => g.Rating)
                 .Take(count)
                 .ToList();
+        }
+
+        /// <inheritdoc/>
+        public void ExportToJson(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentException("File path must not be empty.", nameof(filePath));
+            }
+
+            var games = _repository.ReadAll();
+            var json = JsonSerializer.Serialize(games, new JsonSerializerOptions { WriteIndented = true });
+            System.IO.File.WriteAllText(filePath, json);
+            _logger.LogInfo($"Exported {games.Count} game(s) to \"{filePath}\".");
+        }
+
+        private static void ValidateGame(Game game)
+        {
+            if (game == null)
+            {
+                throw new ArgumentNullException(nameof(game));
+            }
+
+            if (string.IsNullOrWhiteSpace(game.Name))
+            {
+                throw new ArgumentException("Game name must be provided.", nameof(game));
+            }
+
+            if (string.IsNullOrWhiteSpace(game.Genre))
+            {
+                throw new ArgumentException("Game genre must be provided.", nameof(game));
+            }
+
+            if (game.Rating < 0 || game.Rating > 10)
+            {
+                throw new ArgumentException("Rating must be between 0 and 10.", nameof(game));
+            }
+        }
+
+        private static void ValidateId(int id)
+        {
+            if (id <= 0)
+            {
+                throw new ArgumentException("Identifier must be a positive number.", nameof(id));
+            }
         }
     }
 }
