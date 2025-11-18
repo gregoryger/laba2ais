@@ -43,6 +43,10 @@ namespace Logic
                 .InSingletonScope()
                 .WithConstructorArgument("logFilePath", "logs/gameapp.log");
 
+            Bind<IGameValidator>()
+                .To<GameValidator>()
+                .InSingletonScope();
+
             switch (_provider)
             {
                 case RepositoryProvider.EntityFramework:

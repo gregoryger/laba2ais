@@ -15,22 +15,24 @@ namespace Logic
     {
         private readonly IRepository<Game> _repository;
         private readonly IGameLogger _logger;
+        private readonly IGameValidator _validator;
 
         /// <summary>
         /// Создаёт логику и подключает зависимости.
         /// </summary>
         /// <param name="repository">Абстракция репозитория.</param>
         /// <param name="logger">Логгер для аудита.</param>
-        public GameLogic(IRepository<Game> repository, IGameLogger logger)
+        public GameLogic(IRepository<Game> repository, IGameLogger logger, IGameValidator validator)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
         /// <inheritdoc/>
         public Game AddGame(Game game)
         {
-            ValidateGame(game);
+            _validator.Validate(game);
 
             _repository.Add(game);
             _logger.LogInfo($"Game added: {game.Name} ({game.Genre}) with rating {game.Rating}.");
@@ -42,7 +44,7 @@ namespace Logic
         /// <inheritdoc/>
         public bool DeleteGame(int id)
         {
-            ValidateId(id);
+            _validator.ValidateId(id);
 
             var game = _repository.ReadById(id);
             if (game == null)
@@ -64,15 +66,15 @@ namespace Logic
         /// <inheritdoc/>
         public Game? GetGameById(int id)
         {
-            ValidateId(id);
+            _validator.ValidateId(id);
             return _repository.ReadById(id);
         }
 
         /// <inheritdoc/>
         public bool UpdateGame(Game game)
         {
-            ValidateGame(game);
-            ValidateId(game.Id);
+            _validator.Validate(game);
+            _validator.ValidateId(game.Id);
 
             var existingGame = _repository.ReadById(game.Id);
             if (existingGame == null)
@@ -127,35 +129,5 @@ namespace Logic
             _logger.LogInfo($"Exported {games.Count} game(s) to \"{filePath}\".");
         }
 
-        private static void ValidateGame(Game game)
-        {
-            if (game == null)
-            {
-                throw new ArgumentNullException(nameof(game));
-            }
-
-            if (string.IsNullOrWhiteSpace(game.Name))
-            {
-                throw new ArgumentException("Game name must be provided.", nameof(game));
-            }
-
-            if (string.IsNullOrWhiteSpace(game.Genre))
-            {
-                throw new ArgumentException("Game genre must be provided.", nameof(game));
-            }
-
-            if (game.Rating < 0 || game.Rating > 10)
-            {
-                throw new ArgumentException("Rating must be between 0 and 10.", nameof(game));
-            }
-        }
-
-        private static void ValidateId(int id)
-        {
-            if (id <= 0)
-            {
-                throw new ArgumentException("Identifier must be a positive number.", nameof(id));
-            }
-        }
     }
 }
