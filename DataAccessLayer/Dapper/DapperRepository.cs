@@ -8,7 +8,7 @@ using Models;
 namespace DataAccessLayer.Dapper
 {
     /// <summary>
-    /// Реализация <see cref="IRepository{T}"/> на Dapper.
+    /// Репозиторий на базе Dapper.
     /// </summary>
     /// <typeparam name="T">Тип доменной сущности.</typeparam>
     public class DapperRepository<T> : IRepository<T> where T : class, IDomainObject
@@ -17,14 +17,14 @@ namespace DataAccessLayer.Dapper
         private readonly string _tableName;
 
         /// <summary>
-        /// Создаёт репозиторий, использующий ADO.NET соединение.
+        /// Создает репозиторий Dapper.
         /// </summary>
-        /// <param name="connection">Открытое соединение с БД.</param>
+        /// <param name="connection">Открытое подключение.</param>
         /// <param name="tableName">Имя таблицы.</param>
         public DapperRepository(IDbConnection connection, string tableName)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
+            _tableName = string.IsNullOrWhiteSpace(tableName) ? throw new ArgumentNullException(nameof(tableName)) : tableName;
         }
 
         /// <inheritdoc/>
@@ -41,7 +41,6 @@ namespace DataAccessLayer.Dapper
 
             var columns = string.Join(", ", properties);
             var values = string.Join(", ", properties.Select(p => "@" + p));
-
             var sql = $"INSERT INTO {_tableName} ({columns}) VALUES ({values}); SELECT CAST(SCOPE_IDENTITY() as int);";
 
             entity.Id = _connection.ExecuteScalar<int>(sql, entity);
@@ -50,22 +49,19 @@ namespace DataAccessLayer.Dapper
         /// <inheritdoc/>
         public void Delete(int id)
         {
-            var sql = $"DELETE FROM {_tableName} WHERE Id = @Id";
-            _connection.Execute(sql, new { Id = id });
+            _connection.Execute($"DELETE FROM {_tableName} WHERE Id = @Id", new { Id = id });
         }
 
         /// <inheritdoc/>
         public List<T> ReadAll()
         {
-            var sql = $"SELECT * FROM {_tableName}";
-            return _connection.Query<T>(sql).ToList();
+            return _connection.Query<T>($"SELECT * FROM {_tableName}").ToList();
         }
 
         /// <inheritdoc/>
         public T? ReadById(int id)
         {
-            var sql = $"SELECT * FROM {_tableName} WHERE Id = @Id";
-            return _connection.QueryFirstOrDefault<T>(sql, new { Id = id });
+            return _connection.QueryFirstOrDefault<T>($"SELECT * FROM {_tableName} WHERE Id = @Id", new { Id = id });
         }
 
         /// <inheritdoc/>
@@ -76,14 +72,12 @@ namespace DataAccessLayer.Dapper
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            var properties = typeof(T).GetProperties()
-                .Where(p => p.Name != nameof(IDomainObject.Id))
-                .Select(p => $"{p.Name} = @{p.Name}");
+            var setClause = string.Join(", ",
+                typeof(T).GetProperties()
+                    .Where(p => p.Name != nameof(IDomainObject.Id))
+                    .Select(p => $"{p.Name} = @{p.Name}"));
 
-            var setClause = string.Join(", ", properties);
-            var sql = $"UPDATE {_tableName} SET {setClause} WHERE Id = @Id";
-
-            _connection.Execute(sql, entity);
+            _connection.Execute($"UPDATE {_tableName} SET {setClause} WHERE Id = @Id", entity);
         }
     }
 }

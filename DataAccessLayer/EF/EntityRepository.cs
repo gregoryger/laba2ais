@@ -7,7 +7,7 @@ using Models;
 namespace DataAccessLayer.EF
 {
     /// <summary>
-    /// Реализация <see cref="IRepository{T}"/> на Entity Framework Core.
+    /// Репозиторий на базе Entity Framework Core.
     /// </summary>
     /// <typeparam name="T">Тип доменной сущности.</typeparam>
     public class EntityRepository<T> : IRepository<T> where T : class, IDomainObject
@@ -16,9 +16,9 @@ namespace DataAccessLayer.EF
         private readonly DbSet<T> _dbSet;
 
         /// <summary>
-        /// Создаёт репозиторий на основе переданного контекста.
+        /// Создает репозиторий.
         /// </summary>
-        /// <param name="context">Контекст базы данных.</param>
+        /// <param name="context">Контекст EF Core.</param>
         public EntityRepository(GameDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -51,13 +51,13 @@ namespace DataAccessLayer.EF
         /// <inheritdoc/>
         public List<T> ReadAll()
         {
-            return _dbSet.ToList();
+            return _dbSet.AsNoTracking().ToList();
         }
 
         /// <inheritdoc/>
         public T? ReadById(int id)
         {
-            return _dbSet.Find(id);
+            return _dbSet.AsNoTracking().FirstOrDefault(e => e.Id == id);
         }
 
         /// <inheritdoc/>
@@ -66,13 +66,6 @@ namespace DataAccessLayer.EF
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
-            }
-
-            var tracked = _dbSet.Local.FirstOrDefault(e => e.Id == entity.Id);
-
-            if (tracked != null)
-            {
-                _context.Entry(tracked).State = EntityState.Detached;
             }
 
             _context.Entry(entity).State = EntityState.Modified;

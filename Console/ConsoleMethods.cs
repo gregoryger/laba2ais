@@ -6,14 +6,14 @@ using Models;
 namespace ConsoleApp
 {
     /// <summary>
-    /// Вспомогательные методы консольного интерфейса.
+    /// Набор вспомогательных методов для консольного UI.
     /// </summary>
     internal static class ConsoleMethods
     {
         /// <summary>
-        /// Запускает интерактивное меню.
+        /// Основной цикл приложения.
         /// </summary>
-        /// <param name="logic">Инжектированная бизнес-логика игр.</param>
+        /// <param name="logic">Слой бизнес-логики.</param>
         public static void Run(IGameLogic logic)
         {
             if (logic == null)
@@ -25,7 +25,7 @@ namespace ConsoleApp
             while (!exit)
             {
                 ShowMenu();
-                var choice = ReadInt("\nВведите номер пункта (0-7): ", 0, 7);
+                var choice = ReadInt("\nВыберите пункт меню (0-8): ", 0, 8);
                 Console.Clear();
 
                 switch (choice)
@@ -51,6 +51,9 @@ namespace ConsoleApp
                     case 7:
                         ExportGames(logic);
                         break;
+                    case 8:
+                        ImportGames(logic);
+                        break;
                     case 0:
                         exit = true;
                         break;
@@ -60,14 +63,15 @@ namespace ConsoleApp
 
         private static void ShowMenu()
         {
-            Console.WriteLine("=== Каталог любимых игр ===");
+            Console.WriteLine("=== Каталог игр (консоль) ===");
             Console.WriteLine("1. Добавить игру");
             Console.WriteLine("2. Показать все игры");
             Console.WriteLine("3. Изменить игру");
             Console.WriteLine("4. Удалить игру");
             Console.WriteLine("5. Фильтр по жанру");
-            Console.WriteLine("6. ТОП N по рейтингу");
+            Console.WriteLine("6. Топ N по рейтингу");
             Console.WriteLine("7. Экспорт в JSON");
+            Console.WriteLine("8. Импорт из JSON");
             Console.WriteLine("0. Выход");
         }
 
@@ -131,7 +135,7 @@ namespace ConsoleApp
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Не удалось добавить игру: {ex.Message}");
+                Console.WriteLine($"Ошибка при добавлении: {ex.Message}");
             }
 
             Pause();
@@ -139,13 +143,13 @@ namespace ConsoleApp
 
         private static void ShowAllGames(IGameLogic logic)
         {
-            PrintGames(logic.GetAllGames(), "Пока игр нет.");
+            PrintGames(logic.GetAllGames(), "Игры не найдены.");
         }
 
         private static void UpdateGame(IGameLogic logic)
         {
             var games = logic.GetAllGames();
-            PrintGames(games, "Список пуст. Изменять нечего.");
+            PrintGames(games, "Нет игр для редактирования.");
             if (games.Count == 0)
             {
                 return;
@@ -153,7 +157,7 @@ namespace ConsoleApp
 
             try
             {
-                var id = ReadInt("ID для обновления: ", 1, int.MaxValue);
+                var id = ReadInt("ID для изменения: ", 1, int.MaxValue);
                 var storedGame = logic.GetGameById(id);
                 if (storedGame == null)
                 {
@@ -190,7 +194,7 @@ namespace ConsoleApp
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при обновлении: {ex.Message}");
+                Console.WriteLine($"Ошибка обновления: {ex.Message}");
             }
 
             Pause();
@@ -199,7 +203,7 @@ namespace ConsoleApp
         private static void DeleteGame(IGameLogic logic)
         {
             var games = logic.GetAllGames();
-            PrintGames(games, "Список пуст. Удалять нечего.");
+            PrintGames(games, "Нет игр для удаления.");
             if (games.Count == 0)
             {
                 return;
@@ -214,12 +218,12 @@ namespace ConsoleApp
                 }
                 else
                 {
-                    Console.WriteLine("Игра с таким ID не найдена.");
+                    Console.WriteLine("Игра не найдена.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при удалении: {ex.Message}");
+                Console.WriteLine($"Ошибка удаления: {ex.Message}");
             }
 
             Pause();
@@ -241,32 +245,56 @@ namespace ConsoleApp
 
         private static void ShowTopRated(IGameLogic logic)
         {
-            var count = ReadInt("Сколько игр показать? ", 1, 100);
+            var count = ReadInt("Сколько игр показать в топе: ", 1, 100);
             try
             {
-                PrintGames(logic.GetTopRatedGames(count), "По заданным условиям нет игр.");
+                PrintGames(logic.GetTopRatedGames(count), "Нет игр для отображения.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка выборки: {ex.Message}");
+                Console.WriteLine($"Ошибка получения топа: {ex.Message}");
                 Pause();
             }
         }
 
         private static void ExportGames(IGameLogic logic)
         {
-            Console.Write("Укажите путь для JSON (по умолчанию games_export.json): ");
+            Console.Write("Введите путь для JSON (по умолчанию games_export.json): ");
             var inputPath = Console.ReadLine();
             var path = string.IsNullOrWhiteSpace(inputPath) ? "games_export.json" : inputPath.Trim();
 
             try
             {
                 logic.ExportToJson(path);
-                Console.WriteLine($"Экспорт завершён. Файл: {path}");
+                Console.WriteLine($"Экспорт выполнен. Файл: {path}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Не удалось экспортировать: {ex.Message}");
+                Console.WriteLine($"Ошибка экспорта: {ex.Message}");
+            }
+
+            Pause();
+        }
+
+        private static void ImportGames(IGameLogic logic)
+        {
+            Console.Write("Укажите путь к JSON для импорта: ");
+            var path = Console.ReadLine() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                Console.WriteLine("Путь не может быть пустым.");
+                Pause();
+                return;
+            }
+
+            try
+            {
+                var added = logic.ImportFromJson(path.Trim());
+                Console.WriteLine($"Импорт завершен. Добавлено записей: {added}.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка импорта: {ex.Message}");
             }
 
             Pause();
@@ -291,7 +319,7 @@ namespace ConsoleApp
 
         private static void Pause()
         {
-            Console.WriteLine("\nНажмите любую клавишу для продолжения...");
+            Console.WriteLine("\nНажмите любую клавишу, чтобы продолжить...");
             Console.ReadKey();
             Console.Clear();
         }

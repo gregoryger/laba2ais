@@ -4,14 +4,14 @@ using Models;
 namespace DataAccessLayer.EF
 {
     /// <summary>
-    /// DbContext Entity Framework Core для каталога игр.
+    /// Контекст EF Core для работы с таблицей игр.
     /// </summary>
     public class GameDbContext : DbContext
     {
         /// <summary>
-        /// Инициализирует контекст переданными опциями.
+        /// Создает контекст.
         /// </summary>
-        /// <param name="options">Параметры EF Core.</param>
+        /// <param name="options">Параметры контекста.</param>
         public GameDbContext(DbContextOptions<GameDbContext> options) : base(options)
         {
         }
@@ -24,8 +24,6 @@ namespace DataAccessLayer.EF
         /// <inheritdoc/>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
             modelBuilder.Entity<Game>(entity =>
             {
                 entity.HasKey(e => e.Id);

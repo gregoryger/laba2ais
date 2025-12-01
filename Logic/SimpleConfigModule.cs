@@ -1,18 +1,18 @@
 using System;
 using System.Data;
+using System.Data.SqlClient;
 using DataAccessLayer;
 using DataAccessLayer.Dapper;
 using DataAccessLayer.EF;
 using Logic.Logging;
 using Microsoft.EntityFrameworkCore;
-using System.Data.SqlClient;
 using Ninject.Modules;
 using Models;
 
 namespace Logic
 {
     /// <summary>
-    /// Конфигурационный модуль Ninject, который связывает репозитории и вспомогательные сервисы.
+    /// Ninject-модуль для конфигурации зависимостей приложения.
     /// </summary>
     public class SimpleConfigModule : NinjectModule
     {
@@ -20,15 +20,15 @@ namespace Logic
         private readonly RepositoryProvider _provider;
 
         /// <summary>
-        /// Создаёт модуль конфигурации с выбранным провайдером.
+        /// Создает модуль конфигурации.
         /// </summary>
         /// <param name="connectionString">Строка подключения к SQL Server.</param>
-        /// <param name="provider">Выбранный источник данных.</param>
+        /// <param name="provider">Выбранный провайдер данных.</param>
         public SimpleConfigModule(string connectionString, RepositoryProvider provider)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                throw new ArgumentException("Connection string must not be empty.", nameof(connectionString));
+                throw new ArgumentException("Строка подключения обязательна.", nameof(connectionString));
             }
 
             _connectionString = connectionString;
@@ -84,7 +84,7 @@ namespace Logic
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(_provider), _provider, "Unsupported repository provider.");
+                    throw new ArgumentOutOfRangeException(nameof(_provider), _provider, "Неизвестный провайдер данных.");
             }
 
             Bind<IGameLogic>().To<GameLogic>().InSingletonScope();

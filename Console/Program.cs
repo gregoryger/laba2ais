@@ -5,7 +5,7 @@ using Ninject;
 namespace ConsoleApp
 {
     /// <summary>
-    /// Точка входа консольного приложения с настройкой зависимостей через Ninject.
+    /// Точка входа консольного приложения с выбором провайдера и инициализацией Ninject.
     /// </summary>
     internal static class Program
     {
@@ -25,10 +25,10 @@ namespace ConsoleApp
         {
             while (true)
             {
-                Console.WriteLine("Выберите источник данных:");
+                Console.WriteLine("Выберите провайдера данных:");
                 Console.WriteLine("1 - Entity Framework Core");
                 Console.WriteLine("2 - Dapper");
-                Console.Write("Ваш выбор: ");
+                Console.Write("Введите номер: ");
                 var input = Console.ReadLine();
 
                 if (input == "1")

@@ -6,7 +6,7 @@ using Models;
 namespace Logic.Logging
 {
     /// <summary>
-    /// Пишет события аудита в текстовый файл.
+    /// Логгер, записывающий данные в файл.
     /// </summary>
     public class FileGameLogger : IGameLogger
     {
@@ -14,14 +14,14 @@ namespace Logic.Logging
         private readonly object _syncRoot = new();
 
         /// <summary>
-        /// Инициализирует логгер с путём к файлу.
+        /// Создает логгер с указанием пути к файлу.
         /// </summary>
-        /// <param name="logFilePath">Путь до файла лога.</param>
+        /// <param name="logFilePath">Путь к файлу логов.</param>
         public FileGameLogger(string logFilePath)
         {
             if (string.IsNullOrWhiteSpace(logFilePath))
             {
-                throw new ArgumentException("Log file path must be provided.", nameof(logFilePath));
+                throw new ArgumentException("Путь к файлу логов обязателен.", nameof(logFilePath));
             }
 
             _logFilePath = logFilePath;
@@ -36,12 +36,17 @@ namespace Logic.Logging
         /// <inheritdoc/>
         public void LogError(string message, string exceptionMessage)
         {
-            WriteLine("ERROR", $"{message} | Details: {exceptionMessage}");
+            WriteLine("ERROR", $"{message} | {exceptionMessage}");
         }
 
         /// <inheritdoc/>
         public void LogGameSnapshot(Game game)
         {
+            if (game == null)
+            {
+                return;
+            }
+
             WriteLine(
                 "SNAPSHOT",
                 $"Id={game.Id}, Name={game.Name}, Genre={game.Genre}, Rating={game.Rating.ToString("0.0", CultureInfo.InvariantCulture)}");

@@ -1,9 +1,9 @@
-namespace Models
+namespace GameApp.Shared
 {
     /// <summary>
-    /// Доменная сущность "Игра".
+    /// Модель данных игры для отображения во View.
     /// </summary>
-    public class Game : IDomainObject
+    public class GameViewModel
     {
         /// <summary>
         /// Идентификатор игры.
@@ -21,7 +21,7 @@ namespace Models
         public string Genre { get; set; } = string.Empty;
 
         /// <summary>
-        /// Рейтинг в диапазоне 0..10.
+        /// Оценка в диапазоне 0..10.
         /// </summary>
         public double Rating { get; set; }
     }

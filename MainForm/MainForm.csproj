@@ -18,6 +18,8 @@
     <ProjectReference Include="..\Models\Models.csproj" />
     <ProjectReference Include="..\DataAccessLayer\DataAccessLayer.csproj" />
     <ProjectReference Include="..\Logic\Logic.csproj" />
+    <ProjectReference Include="..\Shared\GameApp.Shared.csproj" />
+    <ProjectReference Include="..\Presenter\GameApp.Presenter.csproj" />
   </ItemGroup>
 
 </Project>

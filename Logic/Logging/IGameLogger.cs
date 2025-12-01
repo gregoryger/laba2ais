@@ -3,27 +3,27 @@ using Models;
 namespace Logic.Logging
 {
     /// <summary>
-    /// Обеспечивает аудит действий над играми.
+    /// Логирование операций с играми.
     /// </summary>
     public interface IGameLogger
     {
         /// <summary>
-        /// Логирует успешное действие.
+        /// Записывает информационное сообщение.
         /// </summary>
         /// <param name="message">Текст сообщения.</param>
         void LogInfo(string message);
 
         /// <summary>
-        /// Логирует неуспешное действие и причину.
+        /// Записывает ошибку с деталями.
         /// </summary>
-        /// <param name="message">Контекст сообщения.</param>
-        /// <param name="exceptionMessage">Детали исключения.</param>
+        /// <param name="message">Текст сообщения.</param>
+        /// <param name="exceptionMessage">Описание ошибки.</param>
         void LogError(string message, string exceptionMessage);
 
         /// <summary>
-        /// Логирует краткую информацию об игре.
+        /// Фиксирует снимок состояния игры.
         /// </summary>
-        /// <param name="game">Игра для описания.</param>
+        /// <param name="game">Игра для логирования.</param>
         void LogGameSnapshot(Game game);
     }
 }
