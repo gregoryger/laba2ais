@@ -147,7 +147,7 @@ namespace GameApp.UI
 
         private void InitializeComponent()
         {
-            Text = "Каталог игр (MVP, SOLID)";
+            Text = "Каталог игр";
             MinimumSize = new Size(900, 600);
             StartPosition = FormStartPosition.CenterScreen;
 

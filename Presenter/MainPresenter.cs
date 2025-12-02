@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using GameApp.Shared;
 using Logic;
@@ -7,17 +8,18 @@ using Models;
 namespace GameApp.Presenter
 {
     /// <summary>
-    /// Основной Presenter, координирующий View и бизнес-логику.
+    /// Presenter, который оркестрирует взаимодействие View и бизнес-логики.
     /// </summary>
     public class MainPresenter
     {
         private readonly IMainView _view;
         private readonly IGameLogic _logic;
+        private readonly FilterState _filter = new();
 
         /// <summary>
         /// Создает Presenter.
         /// </summary>
-        /// <param name="view">Экземпляр представления.</param>
+        /// <param name="view">Реализация интерфейса представления.</param>
         /// <param name="logic">Слой бизнес-логики.</param>
         public MainPresenter(IMainView view, IGameLogic logic)
         {
@@ -26,29 +28,28 @@ namespace GameApp.Presenter
         }
 
         /// <summary>
-        /// Настраивает подписки и выполняет начальную загрузку данных.
+        /// Подписывает события View и выполняет начальную загрузку.
         /// </summary>
         public void Initialize()
         {
-            _view.LoadRequested += OnLoadRequested;
-            _view.AddGameRequested += OnAddGameRequested;
-            _view.EditGameRequested += OnEditGameRequested;
-            _view.DeleteGameRequested += OnDeleteGameRequested;
-            _view.FilterRequested += OnFilterRequested;
-            _view.TopGamesRequested += OnTopGamesRequested;
-            _view.ExportRequested += OnExportRequested;
-            _view.ImportRequested += OnImportRequested;
-            _view.SearchRequested += OnSearchRequested;
-
-            RefreshData();
+            WireView();
+            RefreshView();
         }
 
-        private void OnLoadRequested(object? sender, EventArgs e)
+        private void WireView()
         {
-            RefreshData();
+            _view.LoadRequested += (_, _) => RefreshView();
+            _view.AddGameRequested += (_, _) => AddGame();
+            _view.EditGameRequested += (_, args) => EditGame(args.Game);
+            _view.DeleteGameRequested += (_, args) => DeleteGame(args.Game);
+            _view.FilterRequested += (_, args) => ApplyGenreFilter(args.Genre);
+            _view.TopGamesRequested += (_, args) => ShowTop(args.Count);
+            _view.ExportRequested += (_, args) => Export(args.Path);
+            _view.ImportRequested += (_, args) => Import(args.Path);
+            _view.SearchRequested += (_, term) => ApplySearch(term);
         }
 
-        private void OnAddGameRequested(object? sender, EventArgs e)
+        private void AddGame()
         {
             var draft = _view.RequestGameData(null);
             if (draft == null)
@@ -56,151 +57,145 @@ namespace GameApp.Presenter
                 return;
             }
 
-            try
-            {
-                _logic.AddGame(ToModel(draft));
-                RefreshData();
-                _view.ShowInfo("Игра добавлена.");
-            }
-            catch (Exception ex)
-            {
-                _view.ShowError($"Не удалось добавить игру: {ex.Message}");
-            }
+            TryExecute(
+                () =>
+                {
+                    _logic.AddGame(ToDomain(draft));
+                    RefreshView();
+                    _view.ShowInfo("Игра добавлена.");
+                },
+                "Не удалось добавить игру");
         }
 
-        private void OnEditGameRequested(object? sender, GameEventArgs e)
+        private void EditGame(GameViewModel game)
         {
-            var updated = _view.RequestGameData(e.Game);
+            var updated = _view.RequestGameData(game);
             if (updated == null)
             {
                 return;
             }
 
-            try
-            {
-                var isUpdated = _logic.UpdateGame(ToModel(updated));
-                if (isUpdated)
+            TryExecute(
+                () =>
                 {
-                    RefreshData();
+                    var ok = _logic.UpdateGame(ToDomain(updated));
+                    if (!ok)
+                    {
+                        _view.ShowError("Игра не найдена.");
+                        return;
+                    }
+
+                    RefreshView();
                     _view.ShowInfo("Игра обновлена.");
-                }
-                else
-                {
-                    _view.ShowError("Игра не найдена.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _view.ShowError($"Не удалось обновить игру: {ex.Message}");
-            }
+                },
+                "Не удалось обновить игру");
         }
 
-        private void OnDeleteGameRequested(object? sender, GameEventArgs e)
+        private void DeleteGame(GameViewModel game)
         {
-            if (!_view.Confirm($"Удалить игру \"{e.Game.Name}\"?", "Подтверждение удаления"))
+            if (!_view.Confirm($"Удалить игру \"{game.Name}\"?", "Подтверждение удаления"))
             {
                 return;
             }
 
-            try
-            {
-                var deleted = _logic.DeleteGame(e.Game.Id);
-                if (deleted)
+            TryExecute(
+                () =>
                 {
-                    RefreshData();
+                    var ok = _logic.DeleteGame(game.Id);
+                    if (!ok)
+                    {
+                        _view.ShowError("Игра не найдена.");
+                        return;
+                    }
+
+                    RefreshView();
                     _view.ShowInfo("Игра удалена.");
-                }
-                else
+                },
+                "Не удалось удалить игру");
+        }
+
+        private void ApplyGenreFilter(string genre)
+        {
+            _filter.Genre = string.IsNullOrWhiteSpace(genre) ? null : genre;
+            RefreshView();
+        }
+
+        private void ApplySearch(string searchTerm)
+        {
+            _filter.NamePart = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm;
+            RefreshView();
+        }
+
+        private void ShowTop(int count)
+        {
+            TryExecute(
+                () =>
                 {
-                    _view.ShowError("Игра не найдена.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _view.ShowError($"Не удалось удалить игру: {ex.Message}");
-            }
-        }
-
-        private void OnFilterRequested(object? sender, GenreFilterEventArgs e)
-        {
-            RefreshData(string.IsNullOrWhiteSpace(e.Genre) ? null : e.Genre, null);
-        }
-
-        private void OnTopGamesRequested(object? sender, TopGamesRequestEventArgs e)
-        {
-            try
-            {
-                var games = _logic.GetTopRatedGames(e.Count).Select(ToViewModel).ToList();
-                _view.ShowGames(games);
-                _view.ShowInfo($"Показано {games.Count} игр с наивысшим рейтингом.");
-            }
-            catch (Exception ex)
-            {
-                _view.ShowError($"Не удалось получить топ игр: {ex.Message}");
-            }
-        }
-
-        private void OnExportRequested(object? sender, FilePathEventArgs e)
-        {
-            try
-            {
-                _logic.ExportToJson(e.Path);
-                _view.ShowInfo($"Экспорт выполнен: {e.Path}");
-            }
-            catch (Exception ex)
-            {
-                _view.ShowError($"Ошибка при экспорте: {ex.Message}");
-            }
-        }
-
-        private void OnImportRequested(object? sender, FilePathEventArgs e)
-        {
-            try
-            {
-                var added = _logic.ImportFromJson(e.Path);
-                RefreshData();
-                _view.ShowInfo($"Импорт завершен. Добавлено записей: {added}.");
-            }
-            catch (Exception ex)
-            {
-                _view.ShowError($"Ошибка при импорте: {ex.Message}");
-            }
-        }
-
-        private void OnSearchRequested(object? sender, string e)
-        {
-            RefreshData(null, e);
-        }
-
-        private void RefreshData(string? genre = null, string? namePart = null)
-        {
-            try
-            {
-                var games = string.IsNullOrWhiteSpace(genre)
-                    ? _logic.GetAllGames()
-                    : _logic.FilterByGenre(genre);
-
-                if (!string.IsNullOrWhiteSpace(namePart))
-                {
-                    games = games
-                        .Where(g => g.Name.Contains(namePart, StringComparison.OrdinalIgnoreCase))
+                    var games = _logic.GetTopRatedGames(count)
+                        .Select(ToViewModel)
                         .ToList();
-                }
+                    _view.ShowGames(games);
+                    _view.ShowInfo($"Показано {games.Count} лучших игр.");
+                },
+                "Не удалось получить топ игр");
+        }
 
-                var viewModels = games.Select(ToViewModel).ToList();
-                var genres = _logic.GetAllGames()
-                    .Select(g => g.Genre)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(g => g)
-                    .ToList();
+        private void Export(string path)
+        {
+            TryExecute(
+                () =>
+                {
+                    _logic.ExportToJson(path);
+                    _view.ShowInfo($"Экспорт выполнен: {path}");
+                },
+                "Ошибка при экспорте");
+        }
 
-                _view.ShowGames(viewModels);
-                _view.ShowGenres(genres, genre);
-            }
-            catch (Exception ex)
+        private void Import(string path)
+        {
+            TryExecute(
+                () =>
+                {
+                    var added = _logic.ImportFromJson(path);
+                    RefreshView();
+                    _view.ShowInfo($"Импорт завершен. Добавлено записей: {added}.");
+                },
+                "Ошибка при импорте");
+        }
+
+        private void RefreshView()
+        {
+            TryExecute(
+                () =>
+                {
+                    var games = LoadGames(_filter);
+                    var viewModels = games.Select(ToViewModel).ToList();
+                    var genres = _logic.GetAllGames()
+                        .Select(g => g.Genre)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(g => g)
+                        .ToList();
+
+                    _view.ShowGames(viewModels);
+                    _view.ShowGenres(genres, _filter.Genre);
+                },
+                "Не удалось обновить данные");
+        }
+
+        private List<Game> LoadGames(FilterState filter)
+        {
+            var games = string.IsNullOrWhiteSpace(filter.Genre)
+                ? _logic.GetAllGames()
+                : _logic.FilterByGenre(filter.Genre);
+
+            if (!string.IsNullOrWhiteSpace(filter.NamePart))
             {
-                _view.ShowError($"Не удалось загрузить данные: {ex.Message}");
+                games = games
+                    .Where(g => g.Name.Contains(filter.NamePart, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
             }
+
+            return games;
         }
 
         private static GameViewModel ToViewModel(Game game)
@@ -214,7 +209,7 @@ namespace GameApp.Presenter
             };
         }
 
-        private static Game ToModel(GameViewModel viewModel)
+        private static Game ToDomain(GameViewModel viewModel)
         {
             return new Game
             {
@@ -223,6 +218,24 @@ namespace GameApp.Presenter
                 Genre = viewModel.Genre.Trim(),
                 Rating = viewModel.Rating
             };
+        }
+
+        private void TryExecute(Action action, string errorContext)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                _view.ShowError($"{errorContext}: {ex.Message}");
+            }
+        }
+
+        private class FilterState
+        {
+            public string? Genre { get; set; }
+            public string? NamePart { get; set; }
         }
     }
 }

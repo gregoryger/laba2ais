@@ -1,6 +1,5 @@
 using System;
 using System.Windows.Forms;
-using GameApp.Presenter;
 using GameApp.Shared;
 using Logic;
 using Ninject;
@@ -8,32 +7,37 @@ using Ninject;
 namespace GameApp.UI
 {
     /// <summary>
-    /// Точка сборки зависимостей и главного окна.
+    /// Сборка зависимостей и создание главной формы.
     /// </summary>
     public static class AppBootstrapper
     {
         /// <summary>
-        /// Строит главное окно приложения.
+        /// Собирает ядро DI, создаёт View и Presenter.
         /// </summary>
         /// <param name="connectionString">Строка подключения к БД.</param>
-        /// <param name="provider">Провайдер данных.</param>
-        /// <returns>Настроенная форма.</returns>
+        /// <param name="provider">Выбранный провайдер данных.</param>
+        /// <returns>Экземпляр главной формы.</returns>
         public static Form BuildMainForm(string connectionString, RepositoryProvider provider)
         {
-            var kernel = new StandardKernel(new SimpleConfigModule(connectionString, provider));
+            var kernel = CreateKernel(connectionString, provider);
             var logic = kernel.Get<IGameLogic>();
-            IMainView view = new MainForm();
-            var presenter = new MainPresenter(view, logic);
+
+            var view = new MainForm();
+            var presenter = new GameApp.Presenter.MainPresenter(view, logic);
             presenter.Initialize();
 
-            if (view is Form form)
+            view.Disposed += (_, _) => kernel.Dispose();
+            return view;
+        }
+
+        private static IKernel CreateKernel(string connectionString, RepositoryProvider provider)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
             {
-                form.Disposed += (_, _) => kernel.Dispose();
-                return form;
+                throw new ArgumentException("Строка подключения не должна быть пустой.", nameof(connectionString));
             }
 
-            kernel.Dispose();
-            throw new InvalidOperationException("View должна быть формой WinForms.");
+            return new StandardKernel(new SimpleConfigModule(connectionString, provider));
         }
     }
 }
