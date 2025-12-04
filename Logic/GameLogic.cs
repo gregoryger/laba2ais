@@ -19,6 +19,21 @@ namespace Logic
         private readonly IGameLogger _logger;
         private readonly IGameValidator _validator;
 
+        /// <inheritdoc/>
+        public event EventHandler? DataChanged;
+
+        /// <inheritdoc/>
+        public event EventHandler<GameChangedEventArgs>? GameAdded;
+
+        /// <inheritdoc/>
+        public event EventHandler<GameChangedEventArgs>? GameUpdated;
+
+        /// <inheritdoc/>
+        public event EventHandler<GameChangedEventArgs>? GameDeleted;
+
+        /// <inheritdoc/>
+        public event EventHandler<GamesImportedEventArgs>? GamesImported;
+
         /// <summary>
         /// Создает экземпляр слоя бизнес-логики.
         /// </summary>
@@ -39,6 +54,8 @@ namespace Logic
             _repository.Add(game);
             _logger.LogInfo($"Добавлена игра: {game.Name} ({game.Genre}) с рейтингом {game.Rating:0.0}");
             _logger.LogGameSnapshot(game);
+            OnGameAdded(game);
+            OnDataChanged();
             return game;
         }
 
@@ -54,6 +71,8 @@ namespace Logic
 
             _repository.Delete(id);
             _logger.LogInfo($"Удалена игра: {game.Name} (Id={id}).");
+            OnGameDeleted(game);
+            OnDataChanged();
             return true;
         }
 
@@ -86,6 +105,8 @@ namespace Logic
             _repository.Update(game);
             _logger.LogInfo($"Обновлена игра: {game.Name} (Id={game.Id}).");
             _logger.LogGameSnapshot(game);
+            OnGameUpdated(game);
+            OnDataChanged();
             return true;
         }
 
@@ -173,7 +194,37 @@ namespace Logic
             }
 
             _logger.LogInfo($"Импорт завершен. Добавлено: {added} записей из {filePath}.");
+            if (added > 0)
+            {
+                OnGamesImported(added);
+                OnDataChanged();
+            }
             return added;
+        }
+
+        private void OnGameAdded(Game game)
+        {
+            GameAdded?.Invoke(this, new GameChangedEventArgs(game));
+        }
+
+        private void OnGameUpdated(Game game)
+        {
+            GameUpdated?.Invoke(this, new GameChangedEventArgs(game));
+        }
+
+        private void OnGameDeleted(Game game)
+        {
+            GameDeleted?.Invoke(this, new GameChangedEventArgs(game));
+        }
+
+        private void OnGamesImported(int addedCount)
+        {
+            GamesImported?.Invoke(this, new GamesImportedEventArgs(addedCount));
+        }
+
+        private void OnDataChanged()
+        {
+            DataChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private static Game Clone(Game source)

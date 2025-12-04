@@ -24,8 +24,6 @@ namespace GameApp.UI
 
             var view = new MainForm();
             var presenter = new GameApp.Presenter.MainPresenter(view, logic);
-            presenter.Initialize();
-
             view.Disposed += (_, _) => kernel.Dispose();
             return view;
         }

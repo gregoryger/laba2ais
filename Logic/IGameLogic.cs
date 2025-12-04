@@ -9,6 +9,31 @@ namespace Logic
     public interface IGameLogic
     {
         /// <summary>
+        /// Событие, уведомляющее об изменении данных (добавление, удаление, обновление, импорт).
+        /// </summary>
+        event EventHandler? DataChanged;
+
+        /// <summary>
+        /// Событие при добавлении игры.
+        /// </summary>
+        event EventHandler<GameChangedEventArgs>? GameAdded;
+
+        /// <summary>
+        /// Событие при обновлении игры.
+        /// </summary>
+        event EventHandler<GameChangedEventArgs>? GameUpdated;
+
+        /// <summary>
+        /// Событие при удалении игры.
+        /// </summary>
+        event EventHandler<GameChangedEventArgs>? GameDeleted;
+
+        /// <summary>
+        /// Событие после импорта игр.
+        /// </summary>
+        event EventHandler<GamesImportedEventArgs>? GamesImported;
+
+        /// <summary>
         /// Добавляет новую игру.
         /// </summary>
         /// <param name="game">Данные игры.</param>
