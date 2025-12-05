@@ -8,7 +8,7 @@ using Models;
 namespace GameApp.Presenter
 {
     /// <summary>
-    /// Presenter в архитектуре MVP: подписывается на события View, вызывает бизнес-логику и обновляет View.
+    /// Presenter подписывается на события View, вызывает бизнес-логику и обновляет View.
     /// Работает только через интерфейсы IMainView и IGameLogic.
     /// </summary>
     public class MainPresenter
