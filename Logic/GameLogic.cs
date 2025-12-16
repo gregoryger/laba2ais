@@ -51,7 +51,7 @@ namespace Logic
         public Game AddGame(Game game)
         {
             _validator.Validate(game);
-            _repository.Add(game);
+            _repository.Add(game);//добав через репозиторий
             _logger.LogInfo($"Добавлена игра: {game.Name} ({game.Genre}) с рейтингом {game.Rating:0.0}");
             _logger.LogGameSnapshot(game);
             OnGameAdded(game);

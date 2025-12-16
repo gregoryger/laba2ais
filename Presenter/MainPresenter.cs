@@ -61,8 +61,8 @@ namespace GameApp.Presenter
                     return;
                 }
 
-                _logic.AddGame(ToDomain(draft));
-                // DataChanged событие обновит View.
+                _logic.AddGame(ToDomain(draft));//диалог
+                // Маппит данные в Game через ToDomain
             }
             catch (Exception ex)
             {
@@ -166,15 +166,15 @@ namespace GameApp.Presenter
         {
             try
             {
-                var games = LoadFilteredGames();
-                var viewModels = games.Select(ToViewModel).ToList();
+                var games = LoadFilteredGames();//с фильтрами
+                var viewModels = games.Select(ToViewModel).ToList();//202 маппинг GVM
                 var genres = _logic.GetAllGames()
                     .Select(g => g.Genre)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .OrderBy(g => g)
                     .ToList();
 
-                _view.ShowGames(viewModels);
+                _view.ShowGames(viewModels);//в view (69)
                 _view.ShowGenres(genres, _currentGenre);
             }
             catch (Exception ex)

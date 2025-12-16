@@ -1,0 +1,184 @@
+<views:ViewBase x:Class="GameApp.View.MainView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:views="clr-namespace:GameApp.View.Views"
+                mc:Ignorable="d"
+                Title="Game Catalog"
+                MinWidth="1000"
+                MinHeight="700"
+                WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Каталог игр" FontSize="26" FontWeight="Bold" VerticalAlignment="Center" />
+                <TextBlock Text="(CRUD + импорт/экспорт)" VerticalAlignment="Center" Foreground="#666666" Margin="10,0,0,0" />
+            </StackPanel>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding StatusMessage}"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       Foreground="#2b7a0b"
+                       FontWeight="SemiBold" />
+        </Grid>
+
+        <Border Grid.Row="1" Padding="10" Background="#f6f8fa" CornerRadius="6" BorderBrush="#d4d7db" BorderThickness="1">
+            <WrapPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="Жанр:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox Width="180"
+                              ItemsSource="{Binding Genres}"
+                              SelectedItem="{Binding SelectedGenre, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEditable="True"
+                              StaysOpenOnEdit="True"
+                              ToolTip="Выберите жанр для фильтрации" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="Поиск:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <TextBox Width="220"
+                             Text="{Binding SearchTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Поиск по названию" />
+                </StackPanel>
+
+                <Button Content="Обновить"
+                        Command="{Binding LoadCommand}"
+                        Margin="0,0,8,0"
+                        Padding="12,6" />
+                <Button Content="Сбросить фильтры"
+                        Command="{Binding ResetFilterCommand}"
+                        Margin="0,0,8,0"
+                        Padding="12,6" />
+                <Button Content="Экспорт в JSON"
+                        Command="{Binding ExportCommand}"
+                        Margin="0,0,8,0"
+                        Padding="12,6" />
+                <Button Content="Импорт из JSON"
+                        Command="{Binding ImportCommand}"
+                        Margin="0,0,8,0"
+                        Padding="12,6" />
+            </WrapPanel>
+        </Border>
+
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Games}"
+                  SelectedItem="{Binding SelectedGame, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  Margin="0,8,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="70" IsReadOnly="True" />
+                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="2*" />
+                <DataGridTextColumn Header="Жанр" Binding="{Binding Genre}" Width="*" />
+                <DataGridTextColumn Header="Рейтинг" Binding="{Binding Rating}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="3" Padding="12" Background="#fdfefe" BorderBrush="#d4d7db" BorderThickness="1" CornerRadius="6" Margin="0,8,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="Название игры" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding NameInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Height="32"
+                             ToolTip="Введите название" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                    <TextBlock Text="Жанр" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <ComboBox ItemsSource="{Binding Genres}"
+                              Text="{Binding GenreInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEditable="True"
+                              Height="32"
+                              ToolTip="Выберите жанр или введите новый" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                    <TextBlock Text="Рейтинг (0..10)" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <StackPanel Orientation="Horizontal">
+                        <Slider Width="160"
+                                Minimum="0"
+                                Maximum="10"
+                                TickFrequency="0.5"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding RatingInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="{Binding RatingInput, StringFormat=0.0}" Width="50" VerticalAlignment="Center" TextAlignment="Center" Margin="8,0,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                    <Button Content="Добавить" Command="{Binding AddCommand}" Padding="10,6" Margin="0,0,0,4" />
+                    <Button Content="Сохранить" Command="{Binding EditCommand}" Padding="10,6" Margin="0,0,0,4" />
+                    <Button Content="Удалить" Command="{Binding DeleteCommand}" Padding="10,6" Margin="0,0,0,4" />
+                    <Button Content="Очистить форму" Command="{Binding ClearFormCommand}" Padding="10,6" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,12,0,0">
+                    <TextBlock Text="Показать топ N игр:" VerticalAlignment="Center" />
+                    <TextBox Width="60"
+                             Text="{Binding TopCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Сколько игр показать"
+                             Margin="10,0,0,0" />
+                    <Button Content="Показать топ" Command="{Binding TopCommand}" Padding="12,6" Margin="10,0,0,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="4" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="#b00020"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ErrorMessage}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ErrorMessage}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding StatusMessage}"
+                       HorizontalAlignment="Right"
+                       Foreground="#2b7a0b"
+                       FontWeight="SemiBold" />
+        </Grid>
+    </Grid>
+</views:ViewBase>
