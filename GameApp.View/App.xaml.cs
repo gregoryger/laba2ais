@@ -1,5 +1,6 @@
 using System.Windows;
 using GameApp.Presenter;
+using GameApp.Presenter.Navigation;
 using GameApp.Presenter.ViewModels;
 using GameApp.View.Services;
 using GameApp.View.Views;
@@ -13,6 +14,7 @@ namespace GameApp.View
     {
         private PresentationBootstrapper? _bootstrapper;
         private ViewManager? _viewManager;
+        private ViewModelManager? _viewModelManager;
 
         /// <inheritdoc />
         protected override void OnStartup(StartupEventArgs e)
@@ -23,12 +25,15 @@ namespace GameApp.View
 
             _viewManager = new ViewManager();
             _viewManager.Register<MainViewModel, MainView>();
+            _viewModelManager = new ViewModelManager();
 
             _bootstrapper = new PresentationBootstrapper(connectionString);
             var dialogService = new DialogService();
             var fileDialogService = new FileDialogService();
 
-            var mainViewModel = _bootstrapper.CreateMainViewModel(dialogService, fileDialogService, _viewManager);
+            _viewModelManager.Register(() => _bootstrapper.CreateMainViewModel(dialogService, fileDialogService, _viewManager));
+
+            var mainViewModel = _viewModelManager.Get<MainViewModel>();
             mainViewModel.ShowView();
             mainViewModel.LoadData();
         }

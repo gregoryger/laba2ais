@@ -11,7 +11,7 @@ namespace GameApp.View.Views
     /// </summary>
     public class ViewManager : IViewManager
     {
-        private readonly Dictionary<Type, Type> _viewMap = new();
+        private readonly Dictionary<string, Func<ViewBase>> _viewFactories = new();
 
         /// <summary>
         /// Регистрирует соответствие между типами ViewModel и View.
@@ -22,7 +22,8 @@ namespace GameApp.View.Views
             where TViewModel : ViewModelBase
             where TView : ViewBase, new()
         {
-            _viewMap[typeof(TViewModel)] = typeof(TView);
+            var key = typeof(TViewModel).FullName ?? typeof(TViewModel).Name;
+            _viewFactories[key] = () => new TView();
         }
 
         /// <summary>
@@ -38,14 +39,13 @@ namespace GameApp.View.Views
                 throw new ArgumentNullException(nameof(viewModel));
             }
 
-            var viewModelType = typeof(TViewModel);
-            if (!_viewMap.TryGetValue(viewModelType, out var viewType))
+            var key = typeof(TViewModel).FullName ?? typeof(TViewModel).Name;
+            if (!_viewFactories.TryGetValue(key, out var viewFactory))
             {
-                throw new InvalidOperationException($"View для {viewModelType.Name} не зарегистрирован.");
+                throw new InvalidOperationException($"View для {key} не зарегистрирован.");
             }
 
-            var view = (ViewBase)(Activator.CreateInstance(viewType)
-                ?? throw new InvalidOperationException($"Невозможно создать View {viewType.Name}."));
+            var view = viewFactory();
             view.SetDataContext(viewModel);
 
             if (Application.Current.MainWindow == null)
