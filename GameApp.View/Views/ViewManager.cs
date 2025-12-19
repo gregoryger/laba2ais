@@ -7,46 +7,39 @@ using GameApp.Presenter.ViewModels;
 namespace GameApp.View.Views
 {
     /// <summary>
-    /// Создает и отображает WPF-окна для заданных ViewModel.
+    /// Показывает WPF окна для созданных ViewModel (без строковых ключей).
     /// </summary>
-    public class ViewManager : IViewManager
+    public sealed class ViewManager
     {
-        private readonly Dictionary<string, Func<ViewBase>> _viewFactories = new();
+        private readonly Dictionary<ViewModelBase, ViewBase> _openedViews =
+            new Dictionary<ViewModelBase, ViewBase>();
 
         /// <summary>
-        /// Регистрирует соответствие между типами ViewModel и View.
+        /// Подписывается на события создания ViewModel.
         /// </summary>
-        /// <typeparam name="TViewModel">Тип ViewModel.</typeparam>
-        /// <typeparam name="TView">Тип View, наследуется от ViewBase.</typeparam>
-        public void Register<TViewModel, TView>()
-            where TViewModel : ViewModelBase
-            where TView : ViewBase, new()
+        /// <param name="viewModelManager">Менеджер ViewModel.</param>
+        public ViewManager(ViewModelManager viewModelManager)
         {
-            var key = typeof(TViewModel).FullName ?? typeof(TViewModel).Name;
-            _viewFactories[key] = () => new TView();
+            if (viewModelManager == null)
+            {
+                throw new ArgumentNullException(nameof(viewModelManager));
+            }
+
+            viewModelManager.MainViewModelCreated += OnMainViewModelCreated;
         }
 
-        /// <summary>
-        /// Показывает View для указанной ViewModel.
-        /// </summary>
-        /// <typeparam name="TViewModel">Тип ViewModel.</typeparam>
-        /// <param name="viewModel">Экземпляр ViewModel.</param>
-        public void Show<TViewModel>(TViewModel viewModel)
-            where TViewModel : ViewModelBase
+        private void OnMainViewModelCreated(MainViewModel viewModel)
         {
-            if (viewModel == null)
+            if (_openedViews.TryGetValue(viewModel, out var existing))
             {
-                throw new ArgumentNullException(nameof(viewModel));
+                existing.Activate();
+                return;
             }
 
-            var key = typeof(TViewModel).FullName ?? typeof(TViewModel).Name;
-            if (!_viewFactories.TryGetValue(key, out var viewFactory))
-            {
-                throw new InvalidOperationException($"View для {key} не зарегистрирован.");
-            }
-
-            var view = viewFactory();
+            var view = new MainView();
             view.SetDataContext(viewModel);
+
+            _openedViews[viewModel] = view;
 
             if (Application.Current.MainWindow == null)
             {

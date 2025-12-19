@@ -3,7 +3,7 @@ using GameApp.Presenter.ViewModels;
 namespace GameApp.Presenter.Navigation
 {
     /// <summary>
-    /// Интерфейс менеджера отображения View для заданной ViewModel.
+    /// Показывает View для указанной ViewModel.
     /// </summary>
     public interface IViewManager
     {

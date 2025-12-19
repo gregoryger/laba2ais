@@ -19,7 +19,6 @@ namespace GameApp.Presenter.ViewModels
         private readonly IGameLogic _logic;
         private readonly IUserInteractionService _userInteractionService;
         private readonly IFileDialogService _fileDialogService;
-        private readonly IViewManager _viewManager;
         private readonly RelayCommand _editCommand;
         private readonly RelayCommand _deleteCommand;
 
@@ -44,13 +43,11 @@ namespace GameApp.Presenter.ViewModels
         public MainViewModel(
             IGameLogic logic,
             IUserInteractionService userInteractionService,
-            IFileDialogService fileDialogService,
-            IViewManager viewManager)
+            IFileDialogService fileDialogService)
         {
             _logic = logic ?? throw new ArgumentNullException(nameof(logic));
             _userInteractionService = userInteractionService ?? throw new ArgumentNullException(nameof(userInteractionService));
             _fileDialogService = fileDialogService ?? throw new ArgumentNullException(nameof(fileDialogService));
-            _viewManager = viewManager ?? throw new ArgumentNullException(nameof(viewManager));
 
             Games = new BindingList<GameDto>();
             Genres = new BindingList<string>();
@@ -235,14 +232,6 @@ namespace GameApp.Presenter.ViewModels
         /// Команда очистки формы.
         /// </summary>
         public ICommand ClearFormCommand { get; }
-
-        /// <summary>
-        /// Показывает View, зарегистрированный для этой ViewModel.
-        /// </summary>
-        public void ShowView()
-        {
-            _viewManager.Show(this);
-        }
 
         /// <summary>
         /// Загружает игры и жанры с учетом фильтров.

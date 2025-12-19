@@ -1,40 +1,41 @@
 using System;
-using System.Collections.Generic;
 using GameApp.Presenter.ViewModels;
 
 namespace GameApp.Presenter.Navigation
 {
     /// <summary>
-    /// Простой менеджер ViewModel, который хранит фабрики по именам типов.
+    /// Создает ViewModel и уведомляет подписчиков через события.
     /// </summary>
-    public class ViewModelManager : IViewModelManager
+    public sealed class ViewModelManager
     {
-        private readonly Dictionary<string, Func<ViewModelBase>> _factories = new();
+        private Func<MainViewModel>? _mainFactory;
 
-        /// <inheritdoc />
-        public void Register<TViewModel>(Func<TViewModel> factory)
-            where TViewModel : ViewModelBase
+        /// <summary>
+        /// Событие: создана главная ViewModel.
+        /// </summary>
+        public event Action<MainViewModel>? MainViewModelCreated;
+
+        /// <summary>
+        /// Регистрирует фабрику создания главной ViewModel.
+        /// </summary>
+        /// <param name="factory">Фабрика MainViewModel.</param>
+        public void RegisterMain(Func<MainViewModel> factory)
         {
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            var key = typeof(TViewModel).FullName ?? typeof(TViewModel).Name;
-            _factories[key] = () => factory();
+            _mainFactory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
 
-        /// <inheritdoc />
-        public TViewModel Get<TViewModel>()
-            where TViewModel : ViewModelBase
+        /// <summary>
+        /// Создает главную ViewModel и поднимает событие.
+        /// </summary>
+        public void RunMain()
         {
-            var key = typeof(TViewModel).FullName ?? typeof(TViewModel).Name;
-            if (!_factories.TryGetValue(key, out var factory))
+            if (_mainFactory == null)
             {
-                throw new InvalidOperationException($"ViewModel для {key} не зарегистрирована.");
+                throw new InvalidOperationException("Фабрика MainViewModel не зарегистрирована.");
             }
 
-            return (TViewModel)factory();
+            var viewModel = _mainFactory();
+            MainViewModelCreated?.Invoke(viewModel);
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Windows;
 using GameApp.Presenter;
 using GameApp.Presenter.Navigation;
-using GameApp.Presenter.ViewModels;
 using GameApp.View.Services;
 using GameApp.View.Views;
 
@@ -21,21 +20,22 @@ namespace GameApp.View
         {
             base.OnStartup(e);
 
-            const string connectionString = "Server=LAPTOP-11O4LT8E\\SQLEXPRESS02;Database=GamesDB;Trusted_Connection=True;TrustServerCertificate=True;";
-
-            _viewManager = new ViewManager();
-            _viewManager.Register<MainViewModel, MainView>();
-            _viewModelManager = new ViewModelManager();
+            const string connectionString =
+                "Server=LAPTOP-11O4LT8E\\SQLEXPRESS02;Database=GamesDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
             _bootstrapper = new PresentationBootstrapper(connectionString);
             var dialogService = new DialogService();
             var fileDialogService = new FileDialogService();
 
-            _viewModelManager.Register(() => _bootstrapper.CreateMainViewModel(dialogService, fileDialogService, _viewManager));
+            _viewModelManager = new ViewModelManager();
+            _viewManager = new ViewManager(_viewModelManager);
 
-            var mainViewModel = _viewModelManager.Get<MainViewModel>();
-            mainViewModel.ShowView();
-            mainViewModel.LoadData();
+            _viewModelManager.RegisterMain(() =>
+                _bootstrapper.CreateMainViewModel(dialogService, fileDialogService));
+
+            _viewModelManager.MainViewModelCreated += vm => vm.LoadData();
+
+            _viewModelManager.RunMain();
         }
 
         /// <inheritdoc />

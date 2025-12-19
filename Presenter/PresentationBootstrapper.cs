@@ -14,11 +14,6 @@ namespace GameApp.Presenter
         private readonly IKernel _kernel;
         private bool _disposed;
 
-        /// <summary>
-        /// Инициализирует композиционный корень с настройками базы данных.
-        /// </summary>
-        /// <param name="connectionString">Строка подключения к базе.</param>
-        /// <param name="provider">Выбранный провайдер репозитория.</param>
         public PresentationBootstrapper(string connectionString, RepositoryProvider provider)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -29,10 +24,6 @@ namespace GameApp.Presenter
             _kernel = new StandardKernel(new SimpleConfigModule(connectionString, provider));
         }
 
-        /// <summary>
-        /// Инициализирует композиционный корень c Entity Framework Core по умолчанию.
-        /// </summary>
-        /// <param name="connectionString">Строка подключения к базе.</param>
         public PresentationBootstrapper(string connectionString)
             : this(connectionString, RepositoryProvider.EntityFramework)
         {
@@ -43,12 +34,10 @@ namespace GameApp.Presenter
         /// </summary>
         /// <param name="userInteractionService">Сервис взаимодействия с пользователем.</param>
         /// <param name="fileDialogService">Сервис выбора файлов.</param>
-        /// <param name="viewManager">Менеджер View.</param>
         /// <returns>Подготовленная MainViewModel.</returns>
         public MainViewModel CreateMainViewModel(
             IUserInteractionService userInteractionService,
-            IFileDialogService fileDialogService,
-            Navigation.IViewManager viewManager)
+            IFileDialogService fileDialogService)
         {
             if (_disposed)
             {
@@ -56,12 +45,9 @@ namespace GameApp.Presenter
             }
 
             var logic = _kernel.Get<IGameLogic>();
-            return new MainViewModel(logic, userInteractionService, fileDialogService, viewManager);
+            return new MainViewModel(logic, userInteractionService, fileDialogService);
         }
 
-        /// <summary>
-        /// Освобождает созданный контейнер зависимостей.
-        /// </summary>
         public void Dispose()
         {
             if (_disposed)

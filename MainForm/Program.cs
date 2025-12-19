@@ -1,12 +1,13 @@
 using System;
 using System.Windows.Forms;
+using GameApp.Presenter;
 using Logic;
 
-namespace GameApp.Presenter
+namespace GameApp.UI
 {
     /// <summary>
-    /// Точка входа через слой Presenter.
-    /// Собирает DI, создаёт View и запускает WinForms.
+    /// Точка входа WinForms-варианта приложения.
+    /// Создает DI, выбирает провайдер репозитория и запускает MainForm.
     /// </summary>
     internal static class Program
     {
@@ -18,7 +19,7 @@ namespace GameApp.Presenter
             ApplicationConfiguration.Initialize();
 
             var provider = AskProvider();
-            var (view, scope) = AppStarter.Build(() => new GameApp.UI.MainForm(), ConnectionString, provider);
+            var (view, scope) = AppStarter.Build(() => new MainForm(), ConnectionString, provider);
             using (scope)
             {
                 Application.Run((Form)view);
